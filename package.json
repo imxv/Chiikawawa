@@ -1,0 +1,11 @@
+{
+  "name": "chiikawawa",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run dev:api & bun run dev:web",
+    "dev:api": "bun --filter api dev",
+    "dev:web": "bun --filter web dev"
+  }
+}
