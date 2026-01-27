@@ -43,3 +43,9 @@ The frontend uses Elysia Eden to achieve end-to-end type safety with the backend
 - **Frontend**: React 19, TanStack Query, TanStack Router
 - **Build**: rolldown-vite (Vite replacement)
 - **Type System**: Strict TypeScript with `noUncheckedIndexedAccess`
+
+
+# 注意
+
+1. 严格按照 CLAUDE.md 中的指令进行开发
+2. 样式中不要使用蓝紫色渐变色
