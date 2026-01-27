@@ -1,47 +1,53 @@
-import { useMutation } from "@tanstack/react-query";
-import { api } from "./lib/api";
+import { useRef } from "react";
+import { usePosts, useCreatePost } from "./hooks/usePosts";
+import { Card } from "./components/Card";
 
 export function App() {
-  const { mutate, data, isPending } = useMutation({
-    mutationFn: async (content: string) => {
-      const { data, error } = await api.analyze.post({ content });
-      if (error) throw error;
-      return data;
-    }
-  })
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { data: posts, isLoading } = usePosts();
+  const { mutate, isPending } = useCreatePost();
+
+  const handleSubmit = () => {
+    const content = textareaRef.current?.value.trim();
+    if (!content) return;
+    mutate(content, {
+      onSuccess: () => {
+        if (textareaRef.current) textareaRef.current.value = "";
+      },
+    });
+  };
 
   return (
-    <div className="container">
-      <h1 className="title">抽象文案一键打标</h1>
-      <textarea
-        className="textarea"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            mutate(e.currentTarget.value);
-          }
-        }}
-        placeholder="输入文案后按回车..."
-      />
+    <>
+      <div className="header">
+        <h1 className="title">抽象文案分享</h1>
+        <textarea
+          ref={textareaRef}
+          className="textarea"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+          placeholder="发一条抽象文案... (Enter 发布)"
+        />
+        {isPending && <p className="loading">AI 正在发疯...</p>}
+      </div>
 
-      {isPending && <p className="loading">AI 正在发疯...</p>}
+      {isLoading && <p className="loading">加载中...</p>}
 
-      {data && (
-        <div className="result">
-          <div className="result-item">
-            <span className="result-label">建议标签</span>
-            <div className="tags">
-              {data.tags.map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
-              ))}
-            </div>
-          </div>
-          <div className="result-item">
-            <span className="result-label">抽象指数</span>
-            <span className="score">{data.score}/10</span>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+      <div className="masonry">
+        {posts?.map((post) => (
+          <Card
+            key={post.id}
+            id={post.id}
+            content={post.content}
+            tags={post.tags}
+            score={post.score}
+          />
+        ))}
+      </div>
+    </>
+  );
 }

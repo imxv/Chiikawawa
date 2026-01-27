@@ -6,7 +6,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -16,7 +16,7 @@ body {
 
 #root {
   width: 100%;
-  max-width: 600px;
+  max-width: 1400px;
 }
 
 .container {
@@ -136,4 +136,108 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* 瀑布流布局 */
+.masonry {
+  column-count: 2;
+  column-gap: 16px;
+  margin-top: 32px;
+}
+
+@media (min-width: 640px) {
+  .masonry { column-count: 3; }
+}
+
+@media (min-width: 1024px) {
+  .masonry { column-count: 4; }
+}
+
+@media (min-width: 1440px) {
+  .masonry { column-count: 5; }
+}
+
+/* 贴纸卡片 */
+.card {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 16px;
+  padding: 20px;
+  border-radius: 4px 20px 4px 20px;
+  box-shadow: 4px 6px 0 rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px dashed rgba(0,0,0,0.1);
+}
+
+.card:hover {
+  transform: scale(1.03) rotate(0deg) !important;
+  box-shadow: 6px 10px 0 rgba(0,0,0,0.2), 0 12px 30px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+
+.card-sticker {
+  position: absolute;
+  top: -8px;
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.card-content {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.card-tag {
+  font-size: 0.75rem;
+  color: #666;
+  background: rgba(0,0,0,0.05);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.card-score {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-btn {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.08);
+  color: #555;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.card-btn:hover {
+  background: rgba(0,0,0,0.15);
+}
+
+/* 头部区域 */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  margin-bottom: 24px;
 }
