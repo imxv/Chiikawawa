@@ -4,16 +4,20 @@ config({ path: "../../.env" });
 
 import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { desc } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./db";
-import { posts } from "./db/schema";
+import { posts, tags, postTags } from "./db/schema";
 
-function analyzeContent(_content: string) {
-  const tagPool = ["#抽象", "#发疯", "#精神状态", "#emo", "#人间清醒", "#嘴替", "#社死", "#i人", "#e人"];
+async function selectRandomTags(count: number): Promise<string[]> {
+  const result = await db.select({ name: tags.name }).from(tags).orderBy(sql`RANDOM()`).limit(count);
+  return result.map(row => row.name);
+}
+
+async function analyzeContent(_content: string) {
   const count = Math.floor(Math.random() * 3) + 2;
-  const shuffled = tagPool.sort(() => 0.5 - Math.random());
+  const selectedTags = await selectRandomTags(count);
   return {
-    tags: shuffled.slice(0, count),
+    tags: selectedTags,
     score: Math.floor(Math.random() * 3) + 8,
   };
 }
@@ -23,7 +27,27 @@ const app = new Elysia()
   .get("/", () => "Hello Abstract Art!")
   .get("/posts", async () => {
     try {
-      return await db.select().from(posts).orderBy(desc(posts.createdAt));
+      const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt));
+      if (allPosts.length === 0) return [];
+
+      const postIds = allPosts.map(p => p.id);
+      const tagRelations = await db
+        .select({ postId: postTags.postId, tagName: tags.name })
+        .from(postTags)
+        .innerJoin(tags, eq(postTags.tagId, tags.id))
+        .where(inArray(postTags.postId, postIds));
+
+      const tagsByPostId = new Map<string, string[]>();
+      for (const rel of tagRelations) {
+        const existing = tagsByPostId.get(rel.postId) ?? [];
+        existing.push(rel.tagName);
+        tagsByPostId.set(rel.postId, existing);
+      }
+
+      return allPosts.map(post => ({
+        ...post,
+        tags: tagsByPostId.get(post.id) ?? [],
+      }));
     } catch (e) {
       console.error("GET /posts error:", e);
       throw e;
@@ -33,13 +57,28 @@ const app = new Elysia()
     "/posts",
     async ({ body }) => {
       try {
-        const { tags, score } = analyzeContent(body.content);
+        const { tags: tagNames, score } = await analyzeContent(body.content);
         const [post] = await db.insert(posts).values({
           content: body.content,
-          tags,
           score,
         }).returning();
-        return post;
+
+        if (tagNames.length > 0) {
+          const tagRecords = await db
+            .select({ id: tags.id, name: tags.name })
+            .from(tags)
+            .where(inArray(tags.name, tagNames));
+
+          if (tagRecords.length > 0) {
+            await db.insert(postTags).values(
+              tagRecords.map(tag => ({ postId: post.id, tagId: tag.id }))
+            );
+          }
+
+          return { ...post, tags: tagRecords.map(r => r.name) };
+        }
+
+        return { ...post, tags: [] };
       } catch (e) {
         console.error("POST /posts error:", e);
         throw e;
@@ -49,7 +88,7 @@ const app = new Elysia()
   )
   .post(
     "/analyze",
-    ({ body }) => analyzeContent(body.content),
+    async ({ body }) => analyzeContent(body.content),
     { body: t.Object({ content: t.String() }) },
   )
   .listen(3000);
