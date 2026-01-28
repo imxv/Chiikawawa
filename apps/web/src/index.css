@@ -325,3 +325,122 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* 编辑按钮 */
+.card-btn-icon {
+  flex: 0 0 auto;
+  width: 36px;
+  padding: 6px;
+}
+
+/* 编辑弹窗 */
+.edit-modal {
+  border: none;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.edit-modal::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.edit-modal-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.edit-modal-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.edit-modal-textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.edit-modal-section {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 16px 0 8px;
+}
+
+.edit-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.edit-modal-tag {
+  padding: 6px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-modal-tag:hover {
+  border-color: #ccc;
+}
+
+.edit-modal-tag.selected {
+  border-color: transparent;
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: #fff;
+}
+
+.edit-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.edit-modal-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-modal-btn.cancel {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.edit-modal-btn.cancel:hover {
+  background: #cbd5e0;
+}
+
+.edit-modal-btn.save {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: #fff;
+}
+
+.edit-modal-btn.save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
+.edit-modal-btn.save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

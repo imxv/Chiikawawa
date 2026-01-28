@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { EditModal } from "./EditModal";
 
 interface CardProps {
   id: string;
@@ -22,6 +23,7 @@ const MAX_LINES = 5;
 
 export function Card({ id, content, tags, score }: CardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const style = useMemo(() => {
     const seed = id.charCodeAt(0) + id.charCodeAt(id.length - 1);
@@ -89,9 +91,11 @@ export function Card({ id, content, tags, score }: CardProps) {
       </div>
       <div className="card-score">抽象指数 {score}/10</div>
       <div className="card-actions">
+        <button className="card-btn card-btn-icon" onClick={() => setIsEditOpen(true)}>✏️</button>
         <button className="card-btn" onClick={handleCopy}>复制</button>
         <button className="card-btn" onClick={handleShare}>分享</button>
       </div>
+      <EditModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} post={{ id, content, tags }} />
     </div>
   );
 }

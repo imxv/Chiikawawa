@@ -53,6 +53,9 @@ const app = new Elysia()
       throw e;
     }
   })
+  .get("/tags", async () => {
+    return db.select({ id: tags.id, name: tags.name }).from(tags).orderBy(tags.name);
+  })
   .post(
     "/posts",
     async ({ body }) => {
@@ -85,6 +88,36 @@ const app = new Elysia()
       }
     },
     { body: t.Object({ content: t.String() }) },
+  )
+  .put(
+    "/posts/:id",
+    async ({ params, body }) => {
+      const [existing] = await db.select().from(posts).where(eq(posts.id, params.id));
+      if (!existing) throw new Error("Post not found");
+
+      const [updated] = await db.update(posts)
+        .set({ content: body.content })
+        .where(eq(posts.id, params.id))
+        .returning();
+
+      await db.delete(postTags).where(eq(postTags.postId, params.id));
+
+      if (body.tags.length > 0) {
+        const tagRecords = await db.select({ id: tags.id, name: tags.name })
+          .from(tags).where(inArray(tags.name, body.tags));
+        if (tagRecords.length > 0) {
+          await db.insert(postTags).values(
+            tagRecords.map(tag => ({ postId: updated.id, tagId: tag.id }))
+          );
+        }
+        return { ...updated, tags: tagRecords.map(r => r.name) };
+      }
+      return { ...updated, tags: [] };
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: t.Object({ content: t.String(), tags: t.Array(t.String()) }),
+    }
   )
   .post(
     "/analyze",

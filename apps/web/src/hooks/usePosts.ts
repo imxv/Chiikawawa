@@ -25,3 +25,28 @@ export function useCreatePost() {
     },
   });
 }
+
+export function useTags() {
+  return useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await api.tags.get();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, content, tags }: { id: string; content: string; tags: string[] }) => {
+      const { data, error } = await api.posts[id].put({ content, tags });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+}
