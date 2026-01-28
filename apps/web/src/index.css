@@ -234,6 +234,22 @@ body {
   background: rgba(0,0,0,0.15);
 }
 
+.card-expand-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 8px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.card-expand-btn:hover {
+  color: #333;
+}
+
 /* 头部区域 */
 .page-header {
   text-align: center;
