@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { usePosts, useCreatePost } from "./hooks/usePosts";
 import { Card } from "./components/Card";
 
@@ -6,6 +6,7 @@ export function App() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const { data: posts, isLoading } = usePosts();
   const { mutate, isPending } = useCreatePost();
 
@@ -26,20 +27,28 @@ export function App() {
     }
   };
 
+  // 防抖处理搜索查询
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
-    if (!searchQuery.trim()) return posts;
+    if (!debouncedQuery.trim()) return posts;
 
-    const query = searchQuery.toLowerCase().trim();
+    const query = debouncedQuery.toLocaleLowerCase().trim();
 
     return posts.filter(post => {
-      const contentMatch = post.content.toLowerCase().includes(query);
+      const contentMatch = post.content.toLocaleLowerCase().includes(query);
       const tagsMatch = post.tags.some(tag =>
-        tag.toLowerCase().includes(query)
+        tag.toLocaleLowerCase().includes(query)
       );
       return contentMatch || tagsMatch;
     });
-  }, [posts, searchQuery]);
+  }, [posts, debouncedQuery]);
 
   return (
     <>
@@ -52,6 +61,7 @@ export function App() {
           placeholder="搜索文案或标签..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="搜索文案或标签"
         />
         {searchQuery && (
           <button
@@ -64,7 +74,7 @@ export function App() {
         )}
       </div>
 
-      {filteredPosts.length === 0 && searchQuery && (
+      {!isLoading && filteredPosts.length === 0 && searchQuery && (
         <p className="no-results">未找到匹配的内容</p>
       )}
 
