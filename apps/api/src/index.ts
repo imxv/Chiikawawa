@@ -9,8 +9,12 @@ import { db } from "./db";
 import { posts, tags, postTags } from "./db/schema";
 
 async function selectRandomTags(count: number): Promise<string[]> {
-  const result = await db.select({ name: tags.name }).from(tags).orderBy(sql`RANDOM()`).limit(count);
-  return result.map(row => row.name);
+  const result = await db
+    .select({ name: tags.name })
+    .from(tags)
+    .orderBy(sql`RANDOM()`)
+    .limit(count);
+  return result.map((row) => row.name);
 }
 
 async function analyzeContent(_content: string) {
@@ -27,10 +31,13 @@ const app = new Elysia()
   .get("/", () => "Hello Abstract Art!")
   .get("/posts", async () => {
     try {
-      const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt));
+      const allPosts = await db
+        .select()
+        .from(posts)
+        .orderBy(desc(posts.createdAt));
       if (allPosts.length === 0) return [];
 
-      const postIds = allPosts.map(p => p.id);
+      const postIds = allPosts.map((p) => p.id);
       const tagRelations = await db
         .select({ postId: postTags.postId, tagName: tags.name })
         .from(postTags)
@@ -44,7 +51,7 @@ const app = new Elysia()
         tagsByPostId.set(rel.postId, existing);
       }
 
-      return allPosts.map(post => ({
+      return allPosts.map((post) => ({
         ...post,
         tags: tagsByPostId.get(post.id) ?? [],
       }));
@@ -54,17 +61,27 @@ const app = new Elysia()
     }
   })
   .get("/tags", async () => {
-    return db.select({ id: tags.id, name: tags.name }).from(tags).orderBy(tags.name);
+    return db
+      .select({ id: tags.id, name: tags.name })
+      .from(tags)
+      .orderBy(tags.name);
   })
   .post(
     "/posts",
     async ({ body }) => {
       try {
         const { tags: tagNames, score } = await analyzeContent(body.content);
-        const [post] = await db.insert(posts).values({
-          content: body.content,
-          score,
-        }).returning();
+        const [post] = await db
+          .insert(posts)
+          .values({
+            content: body.content,
+            score,
+          })
+          .returning();
+
+        if (!post) {
+          throw new Error("Failed to create post");
+        }
 
         if (tagNames.length > 0) {
           const tagRecords = await db
@@ -73,12 +90,14 @@ const app = new Elysia()
             .where(inArray(tags.name, tagNames));
 
           if (tagRecords.length > 0) {
-            await db.insert(postTags).values(
-              tagRecords.map(tag => ({ postId: post.id, tagId: tag.id }))
-            );
+            await db
+              .insert(postTags)
+              .values(
+                tagRecords.map((tag) => ({ postId: post.id, tagId: tag.id })),
+              );
           }
 
-          return { ...post, tags: tagRecords.map(r => r.name) };
+          return { ...post, tags: tagRecords.map((r) => r.name) };
         }
 
         return { ...post, tags: [] };
@@ -92,38 +111,48 @@ const app = new Elysia()
   .put(
     "/posts/:id",
     async ({ params, body }) => {
-      const [existing] = await db.select().from(posts).where(eq(posts.id, params.id));
+      const [existing] = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, params.id));
       if (!existing) throw new Error("Post not found");
 
-      const [updated] = await db.update(posts)
+      const [updated] = await db
+        .update(posts)
         .set({ content: body.content })
         .where(eq(posts.id, params.id))
         .returning();
 
+      if (!updated) {
+        throw new Error("Failed to update post");
+      }
+
       await db.delete(postTags).where(eq(postTags.postId, params.id));
 
       if (body.tags.length > 0) {
-        const tagRecords = await db.select({ id: tags.id, name: tags.name })
-          .from(tags).where(inArray(tags.name, body.tags));
+        const tagRecords = await db
+          .select({ id: tags.id, name: tags.name })
+          .from(tags)
+          .where(inArray(tags.name, body.tags));
         if (tagRecords.length > 0) {
-          await db.insert(postTags).values(
-            tagRecords.map(tag => ({ postId: updated.id, tagId: tag.id }))
-          );
+          await db
+            .insert(postTags)
+            .values(
+              tagRecords.map((tag) => ({ postId: updated.id, tagId: tag.id })),
+            );
         }
-        return { ...updated, tags: tagRecords.map(r => r.name) };
+        return { ...updated, tags: tagRecords.map((r) => r.name) };
       }
       return { ...updated, tags: [] };
     },
     {
       params: t.Object({ id: t.String() }),
       body: t.Object({ content: t.String(), tags: t.Array(t.String()) }),
-    }
+    },
   )
-  .post(
-    "/analyze",
-    async ({ body }) => analyzeContent(body.content),
-    { body: t.Object({ content: t.String() }) },
-  )
+  .post("/analyze", async ({ body }) => analyzeContent(body.content), {
+    body: t.Object({ content: t.String() }),
+  })
   .listen(3000);
 
 console.log(
