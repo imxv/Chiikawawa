@@ -49,3 +49,4 @@ The frontend uses Elysia Eden to achieve end-to-end type safety with the backend
 
 1. 严格按照 CLAUDE.md 中的指令进行开发
 2. 样式中不要使用蓝紫色渐变色
+3. 样式统一使用 TailwindCSS 来实现
