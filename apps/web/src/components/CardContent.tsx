@@ -3,8 +3,6 @@ import { useMemo } from "react";
 interface CardContentProps {
   id: string;
   content: string;
-  tags: string[];
-  score: number;
   expanded?: boolean;
 }
 
@@ -31,7 +29,7 @@ export function getCardStyle(id: string) {
   };
 }
 
-export function CardContent({ id, content, tags, score, expanded = false }: CardContentProps) {
+export function CardContent({ id, content, expanded = false }: CardContentProps) {
   const style = useMemo(() => getCardStyle(id), [id]);
 
   const shouldTruncate = useMemo(() => {

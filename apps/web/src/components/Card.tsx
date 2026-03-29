@@ -6,13 +6,12 @@ interface CardProps {
   id: string;
   content: string;
   tags: string[];
-  score: number;
 }
 
 const MAX_LENGTH = 150;
 const MAX_LINES = 5;
 
-export function Card({ id, content, tags, score }: CardProps) {
+export function Card({ id, content, tags }: CardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -46,8 +45,6 @@ export function Card({ id, content, tags, score }: CardProps) {
       <CardContent
         id={id}
         content={content}
-        tags={tags}
-        score={score}
         expanded={expanded}
       />
       {shouldTruncate && (
