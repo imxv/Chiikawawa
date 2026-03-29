@@ -1,14 +1,18 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { usePosts, useCreatePost } from "./hooks/usePosts";
+import { useIsMobile } from "./hooks/useIsMobile";
 import { Card } from "./components/Card";
+import { SwipeDeck } from "./components/SwipeDeck";
 
 export function App() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const { data: posts, isLoading } = usePosts();
   const { mutate, isPending } = useCreatePost();
+  const isMobile = useIsMobile();
 
   const handleSubmit = () => {
     const content = textareaRef.current?.value.trim();
@@ -35,6 +39,19 @@ export function App() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // 全局快捷键：Ctrl+F / Cmd+F 聚焦搜索框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
     if (!debouncedQuery.trim()) return posts;
@@ -54,41 +71,48 @@ export function App() {
     <>
       {isLoading && <p className="loading">加载中...</p>}
 
-      <div className="search-container">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="搜索文案或标签..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          aria-label="搜索文案或标签"
-        />
-        {searchQuery && (
-          <button
-            className="search-clear"
-            onClick={() => setSearchQuery("")}
-            aria-label="清除搜索"
-          >
-            ✕
-          </button>
-        )}
-      </div>
+      {isMobile ? (
+        <SwipeDeck posts={filteredPosts} />
+      ) : (
+        <>
+          <div className="search-container">
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="search-input"
+              placeholder="搜索文案或标签... (Ctrl+F / ⌘F)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="搜索文案或标签"
+            />
+            {searchQuery && (
+              <button
+                className="search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="清除搜索"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-      {!isLoading && filteredPosts.length === 0 && searchQuery && (
-        <p className="no-results">未找到匹配的内容</p>
+          {!isLoading && filteredPosts.length === 0 && searchQuery && (
+            <p className="no-results">未找到匹配的内容</p>
+          )}
+
+          <div className="masonry">
+            {filteredPosts.map((post) => (
+              <Card
+                key={post.id}
+                id={post.id}
+                content={post.content}
+                tags={post.tags}
+                score={post.score}
+              />
+            ))}
+          </div>
+        </>
       )}
-
-      <div className="masonry">
-        {filteredPosts.map((post) => (
-          <Card
-            key={post.id}
-            id={post.id}
-            content={post.content}
-            tags={post.tags}
-            score={post.score}
-          />
-        ))}
-      </div>
 
       <div className={`floating-input ${isExpanded ? "expanded" : ""}`}>
         <textarea

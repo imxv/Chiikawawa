@@ -4,17 +4,7 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "bun run dev:api & bun run dev:web",
-    "dev:api": "bun --filter api dev",
+    "dev": "bun run dev:web",
     "dev:web": "bun --filter web dev"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.8",
-    "tsx": "^4.21.0"
-  },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.45.1",
-    "postgres": "^3.4.8"
   }
 }

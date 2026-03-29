@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Chiikawawa is a Bun monorepo with two workspaces:
-- **apps/api**: Elysia backend server (port 3000)
+Chiikawawa is a React frontend project, using Supabase as the backend (BaaS).
 - **apps/web**: React frontend with Vite (rolldown-vite)
+- **Database**: Supabase (PostgreSQL)
 
 ## Commands
 
@@ -14,12 +14,8 @@ Chiikawawa is a Bun monorepo with two workspaces:
 # Install dependencies
 bun install
 
-# Development (both services)
-bun run dev
-
-# Development (individual)
-bun run dev:api    # API with hot reload
-bun run dev:web    # Web with Vite dev server
+# Development
+bun run dev        # Web with Vite dev server
 
 # Web only
 cd apps/web
@@ -30,19 +26,25 @@ bun run preview    # Preview production build
 
 ## Architecture
 
-### Type-Safe API Communication
-The frontend uses Elysia Eden to achieve end-to-end type safety with the backend:
+### Data Access
+The frontend uses `@supabase/supabase-js` to directly access Supabase:
 
-1. Backend exports its app type: `export type App = typeof app;` (apps/api/src/index.ts:30)
-2. Frontend imports this type directly: `import type { App } from "../../../api/src/index";` (apps/web/src/lib/api.ts:3)
-3. Eden client provides typed API calls: `api.analyze.post({ content })` with full autocomplete
+1. Supabase client: `apps/web/src/lib/supabase.ts`
+2. Database types: `apps/web/src/lib/database.types.ts`
+3. React Query hooks: `apps/web/src/hooks/usePosts.ts`
 
 ### Tech Stack
 - **Runtime**: Bun
-- **Backend**: Elysia with CORS plugin
-- **Frontend**: React 19, TanStack Query, TanStack Router
+- **Frontend**: React 19, TanStack Query
+- **Backend**: Supabase (PostgreSQL, RLS)
 - **Build**: rolldown-vite (Vite replacement)
+- **Styling**: Tailwind CSS v4
 - **Type System**: Strict TypeScript with `noUncheckedIndexedAccess`
+
+### Environment Variables
+Frontend env vars (in `apps/web/.env`):
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 
 
 # 注意
